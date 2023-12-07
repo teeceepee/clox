@@ -4,6 +4,12 @@ project(clox CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(clox
-    main.cc
+    main.cpp
     common.h
+    chunk.h
+    chunk.cpp
+    memory.h
+    memory.cpp
+    debug.h
+    debug.cpp
 )
