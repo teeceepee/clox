@@ -12,4 +12,6 @@ add_executable(clox
     memory.cpp
     debug.h
     debug.cpp
+    value.h
+    value.cpp
 )
