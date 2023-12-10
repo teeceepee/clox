@@ -34,17 +34,18 @@ pop() {
     return *(vm.stackTop);
 }
 
-
 static InterpretResult
 run() {
 #define READ_BYTE() (*(vm.ip++))
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+    // clang-format off
 #define BINARY_OP(op) \
     do { \
         double b = pop(); \
         double a = pop(); \
         push(a op b); \
     } while (false)
+    // clang-format on
 
     for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -99,6 +100,19 @@ run() {
 
 InterpretResult
 interpret(const char* source) {
-    compile(source);
-    return InterpretResult::INTERPRET_OK;
+    Chunk chunk;
+    initChunk(&chunk);
+
+    if (!compile(source, &chunk)) {
+        freeChunk(&chunk);
+        return InterpretResult::INTERPRET_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
+    vm.ip = vm.chunk->code;
+
+    InterpretResult result = run();
+
+    freeChunk(&chunk);
+    return result;
 }
