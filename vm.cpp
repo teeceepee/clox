@@ -1,4 +1,6 @@
 #include "vm.h"
+
+#include "compiler.h"
 #include "debug.h"
 
 #include <cstdio>
@@ -96,8 +98,7 @@ run() {
 }
 
 InterpretResult
-interpret(Chunk* chunk) {
-    vm.chunk = chunk;
-    vm.ip = vm.chunk->code;
-    return run();
+interpret(const char* source) {
+    compile(source);
+    return InterpretResult::INTERPRET_OK;
 }
