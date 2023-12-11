@@ -13,7 +13,8 @@ resetStack() {
     vm.stackTop = vm.stack;
 }
 
-static void runtimeError(const char* format, ...) {
+static void
+runtimeError(const char* format, ...) {
     va_list args;
     va_start(args, format);
     vfprintf(stderr, format, args);
@@ -48,8 +49,8 @@ pop() {
     return *(vm.stackTop);
 }
 
-static
-Value peek(int distance) {
+static Value
+peek(int distance) {
     return vm.stackTop[-1 - distance];
 }
 
