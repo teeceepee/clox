@@ -64,17 +64,8 @@ valuesEqual(Value a, Value b) {
         return true;
     case ValueType::VAL_NUMBER:
         return AS_NUMBER(a) == AS_NUMBER(b);
-    case ValueType::VAL_OBJ: {
-        ObjString* aString = AS_STRING(a);
-        ObjString* bString = AS_STRING(b);
-        bool lengthEqual = aString->length == bString->length;
-        if (lengthEqual) {
-            bool byteEqual = memcmp(aString->chars, bString->chars, aString->length) == 0;
-            return byteEqual;
-        } else {
-            return false;
-        }
-    }
+    case ValueType::VAL_OBJ:
+        return AS_OBJ(a) == AS_OBJ(b);
     default:
         return false; // Unreachable.
     }
