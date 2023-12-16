@@ -22,6 +22,22 @@ allocateObject(size_t size, ObjType type) {
     return object;
 }
 
+ObjFunction*
+newFunction() {
+    ObjFunction* function = ALLOCATE_OBJ(ObjFunction, ObjType::OBJ_FUNCTION);
+    function->arity = 0;
+    function->name = nullptr;
+    initChunk(&(function->chunk));
+    return function;
+}
+
+ObjNative*
+newNative(NativeFn function) {
+    ObjNative* native = ALLOCATE_OBJ(ObjNative, ObjType::OBJ_NATIVE);
+    native->function = function;
+    return native;
+}
+
 static ObjString*
 allocateString(char* chars, int length, uint32_t hash) {
     ObjString* string = ALLOCATE_OBJ(ObjString, ObjType::OBJ_STRING);
@@ -67,9 +83,24 @@ copyString(const char* chars, int length) {
     return allocateString(heapChars, length, hash);
 }
 
+static void
+printFunction(ObjFunction* function) {
+    if (function->name == nullptr) {
+        printf("<script>");
+        return;
+    }
+    printf("<fn %s>", function->name->chars);
+}
+
 void
 printObject(Value value) {
     switch (OBJ_TYPE(value)) {
+    case ObjType::OBJ_FUNCTION:
+        printFunction(AS_FUNCTION(value));
+        break;
+    case ObjType::OBJ_NATIVE:
+        printf("<native fn>");
+        break;
     case ObjType::OBJ_STRING:
         printf("%s", AS_CSTRING(value));
         break;
