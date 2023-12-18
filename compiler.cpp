@@ -46,6 +46,12 @@ struct ParseRule {
 struct Local {
     Token name;
     int depth;
+    bool isCaptured;
+};
+
+struct Upvalue {
+    uint8_t index;
+    bool isLocal;
 };
 
 enum FunctionType {
@@ -60,6 +66,7 @@ struct Compiler {
 
     Local locals[UINT8_COUNT];
     int localCount;
+    Upvalue upvalues[UINT8_COUNT];
     int scopeDepth;
 };
 
@@ -212,7 +219,11 @@ endScope() {
     current->scopeDepth -= 1;
 
     while (current->localCount > 0 && current->locals[current->localCount - 1].depth > current->scopeDepth) {
-        emitByte(OpCode::OP_POP);
+        if (current->locals[current->localCount - 1].isCaptured) {
+            emitByte(OpCode::OP_CLOSE_UPVALUE);
+        } else {
+            emitByte(OpCode::OP_POP);
+        }
         current->localCount -= 1;
     }
 }
@@ -313,6 +324,7 @@ initCompiler(Compiler* compiler, FunctionType type) {
 
     Local* local = &(current->locals[current->localCount++]);
     local->depth = 0;
+    local->isCaptured = false;
     local->name.start = "";
     local->name.length = 0;
 }
@@ -354,6 +366,8 @@ static uint8_t
 identifierConstant(Token* name);
 static int
 resolveLocal(Compiler* compiler, Token* name);
+static int
+resolveUpvalue(Compiler* compiler, Token* name);
 
 static void
 namedVariable(Token name, bool canAssign) {
@@ -362,6 +376,9 @@ namedVariable(Token name, bool canAssign) {
     if (arg != -1) {
         getOp = OpCode::OP_GET_LOCAL;
         setOp = OpCode::OP_SET_LOCAL;
+    } else if ((arg = resolveUpvalue(current, &name)) != -1) {
+        getOp = OpCode::OP_GET_UPVALUE;
+        setOp = OpCode::OP_SET_UPVALUE;
     } else {
         arg = identifierConstant(&name);
         getOp = OpCode::OP_GET_GLOBAL;
@@ -494,6 +511,47 @@ resolveLocal(Compiler* compiler, Token* name) {
     return -1;
 }
 
+static int
+addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
+    int upvalueCount = compiler->function->upvalueCount;
+
+    for (int i = 0; i < upvalueCount; i++) {
+        Upvalue* upvalue = &(compiler->upvalues[i]);
+        if (upvalue->index == index && upvalue->isLocal == isLocal) {
+            return i;
+        }
+    }
+
+    if (upvalueCount == UINT8_COUNT) {
+        error("Too many closure variables in function.");
+        return 0;
+    }
+
+    compiler->upvalues[upvalueCount].isLocal = isLocal;
+    compiler->upvalues[upvalueCount].index = index;
+    return compiler->function->upvalueCount++;
+}
+
+static int
+resolveUpvalue(Compiler* compiler, Token* name) {
+    if (compiler->enclosing == nullptr) {
+        return -1;
+    }
+
+    int local = resolveLocal(compiler->enclosing, name);
+    if (local != -1) {
+        compiler->enclosing->locals[local].isCaptured = true;
+        return addUpvalue(compiler, (uint8_t)local, true);
+    }
+
+    int upvalue = resolveUpvalue(compiler->enclosing, name);
+    if (upvalue != -1) {
+        return addUpvalue(compiler, (int8_t)upvalue, false);
+    }
+
+    return -1;
+}
+
 static void
 addLocal(Token name) {
     if (current->localCount == UINT8_COUNT) {
@@ -504,6 +562,7 @@ addLocal(Token name) {
     Local* local = &(current->locals[current->localCount++]);
     local->name = name;
     local->depth = -1;
+    local->isCaptured = false;
 }
 
 static void
@@ -612,7 +671,12 @@ static void function(FunctionType type) {
     block();
 
     ObjFunction* function = endCompiler();
-    emitBytes(OpCode::OP_CONSTANT, makeConstant(OBJ_VAL(function)));
+    emitBytes(OpCode::OP_CLOSURE, makeConstant(OBJ_VAL(function)));
+
+    for (int i = 0; i < function->upvalueCount; i++) {
+        emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
+        emitByte(compiler.upvalues[i].index);
+    }
 }
 
 static void
