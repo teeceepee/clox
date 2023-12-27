@@ -3,24 +3,31 @@
 
 #include "chunk.h"
 #include "common.h"
+#include "table.h"
 #include "value.h"
 
 #define OBJ_TYPE(value)        (AS_OBJ(value)->type)
 
+#define IS_CLASS(value)        isObjType(value, ObjType::ObjClass)
 #define IS_CLOSURE(value)      isObjType(value, ObjType::ObjClosure)
 #define IS_FUNCTION(value)     isObjType(value, ObjType::ObjFunction)
+#define IS_INSTANCE(value)     isObjType(value, ObjType::OBJ_INSTANCE)
 #define IS_NATIVE(value)       isObjType(value, ObjType::OBJ_NATIVE)
 #define IS_STRING(value)       isObjType(value, ObjType::OBJ_STRING)
 
+#define AS_CLASS(value)        ((ObjClass*)AS_OBJ(value))
 #define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
+#define AS_INSTANCE(value)     ((ObjInstance*)AS_OBJ(value))
 #define AS_NATIVE(value)       (((ObjNative*)AS_OBJ(value))->function)
 #define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
 
 enum ObjType {
+    OBJ_CLASS,
     OBJ_CLOSURE,
     OBJ_FUNCTION,
+    OBJ_INSTANCE,
     OBJ_NATIVE,
     OBJ_STRING,
     OBJ_UPVALUE,
@@ -68,11 +75,28 @@ struct ObjClosure {
     int upvalueCount;
 };
 
+struct ObjClass {
+    Obj obj;
+    ObjString* name;
+};
+
+struct ObjInstance {
+    Obj obj;
+    ObjClass* klass;
+    Table fields;
+};
+
+ObjClass*
+newClass(ObjString* name);
+
 ObjClosure*
 newClosure(ObjFunction* function);
 
 ObjFunction*
 newFunction();
+
+ObjInstance*
+newInstance(ObjClass* klass);
 
 ObjNative*
 newNative(NativeFn function);
