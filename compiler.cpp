@@ -698,7 +698,8 @@ block() {
     consume(TokenType::TOKEN_RIGHT_BRACE, "Expect '}' after block");
 }
 
-static void function(FunctionType type) {
+static void
+function(FunctionType type) {
     Compiler compiler;
     initCompiler(&compiler, type);
     beginScope();

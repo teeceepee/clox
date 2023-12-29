@@ -9,9 +9,9 @@
 #define OBJ_TYPE(value)        (AS_OBJ(value)->type)
 
 #define IS_BOUND_METHOD(value) isObjType(value, ObjType::OBJ_BOUND_METHOD)
-#define IS_CLASS(value)        isObjType(value, ObjType::ObjClass)
-#define IS_CLOSURE(value)      isObjType(value, ObjType::ObjClosure)
-#define IS_FUNCTION(value)     isObjType(value, ObjType::ObjFunction)
+#define IS_CLASS(value)        isObjType(value, ObjType::OBJ_CLASS)
+#define IS_CLOSURE(value)      isObjType(value, ObjType::OBJ_CLOSURE)
+#define IS_FUNCTION(value)     isObjType(value, ObjType::OBJ_FUNCTION)
 #define IS_INSTANCE(value)     isObjType(value, ObjType::OBJ_INSTANCE)
 #define IS_NATIVE(value)       isObjType(value, ObjType::OBJ_NATIVE)
 #define IS_STRING(value)       isObjType(value, ObjType::OBJ_STRING)

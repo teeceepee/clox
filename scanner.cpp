@@ -102,10 +102,14 @@ skipWhitespace() {
         }
         case '/': {
             if (peekNext() == '/') {
+                // A comment goes until the end of the line.
                 while (peek() != '\n' && !isAtEnd()) {
                     advance();
                 }
+            } else {
+                return;
             }
+            break;
         }
         default:
             return;
