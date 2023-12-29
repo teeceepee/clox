@@ -8,6 +8,7 @@
 
 #define OBJ_TYPE(value)        (AS_OBJ(value)->type)
 
+#define IS_BOUND_METHOD(value) isObjType(value, ObjType::OBJ_BOUND_METHOD)
 #define IS_CLASS(value)        isObjType(value, ObjType::ObjClass)
 #define IS_CLOSURE(value)      isObjType(value, ObjType::ObjClosure)
 #define IS_FUNCTION(value)     isObjType(value, ObjType::ObjFunction)
@@ -15,6 +16,7 @@
 #define IS_NATIVE(value)       isObjType(value, ObjType::OBJ_NATIVE)
 #define IS_STRING(value)       isObjType(value, ObjType::OBJ_STRING)
 
+#define AS_BOUND_METHOD(value) ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_CLASS(value)        ((ObjClass*)AS_OBJ(value))
 #define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
@@ -24,6 +26,7 @@
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
 
 enum ObjType {
+    OBJ_BOUND_METHOD,
     OBJ_CLASS,
     OBJ_CLOSURE,
     OBJ_FUNCTION,
@@ -78,6 +81,7 @@ struct ObjClosure {
 struct ObjClass {
     Obj obj;
     ObjString* name;
+    Table methods;
 };
 
 struct ObjInstance {
@@ -85,6 +89,15 @@ struct ObjInstance {
     ObjClass* klass;
     Table fields;
 };
+
+struct ObjBoundMethod {
+    Obj obj;
+    Value receiver;
+    ObjClosure* method;
+};
+
+ObjBoundMethod*
+newBoundMethod(Value receiver, ObjClosure* closure);
 
 ObjClass*
 newClass(ObjString* name);
