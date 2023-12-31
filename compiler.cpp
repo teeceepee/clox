@@ -20,21 +20,24 @@ struct Parser {
     bool panicMode;
 };
 
-// clang-format off
-enum Precedence  {
+enum class Precedence {
     PREC_NONE,
-    PREC_ASSIGNMENT,  // =
-    PREC_OR,          // or
-    PREC_AND,         // and
-    PREC_EQUALITY,    // == !=
-    PREC_COMPARISON,  // < > <= >=
-    PREC_TERM,        // + -
-    PREC_FACTOR,      // * /
-    PREC_UNARY,       // ! -
-    PREC_CALL,        // . ()
+    PREC_ASSIGNMENT, // =
+    PREC_OR,         // or
+    PREC_AND,        // and
+    PREC_EQUALITY,   // == !=
+    PREC_COMPARISON, // < > <= >=
+    PREC_TERM,       // + -
+    PREC_FACTOR,     // * /
+    PREC_UNARY,      // ! -
+    PREC_CALL,       // . ()
     PREC_PRIMARY,
 };
-// clang-format on
+
+Precedence inline
+nextPrecedence(Precedence precedence) {
+    return static_cast<Precedence>(static_cast<int>(precedence) + 1);
+}
 
 typedef void (*ParseFn)(bool canAssign);
 
@@ -55,7 +58,7 @@ struct Upvalue {
     bool isLocal;
 };
 
-enum FunctionType {
+enum class FunctionType {
     TYPE_FUNCTION,
     TYPE_INITIALIZER,
     TYPE_METHOD,
@@ -95,9 +98,9 @@ errorAt(Token* token, const char* message) {
     parser.panicMode = true;
     fprintf(stderr, "[line %d] Error", token->line);
 
-    if (token->type == TOKEN_EOF) {
+    if (token->type == TokenType::TOKEN_EOF) {
         fprintf(stderr, " at end");
-    } else if (token->type == TOKEN_ERROR) {
+    } else if (token->type == TokenType::TOKEN_ERROR) {
         // Nothing.
     } else {
         fprintf(stderr, " at '%.*s'", token->length, token->start);
@@ -123,7 +126,7 @@ advance() {
 
     for (;;) {
         parser.current = scanToken();
-        if (parser.current.type != TOKEN_ERROR)
+        if (parser.current.type != TokenType::TOKEN_ERROR)
             break;
 
         errorAtCurrent(parser.current.start);
@@ -160,7 +163,12 @@ emitByte(uint8_t byte) {
 }
 
 static void
-emitBytes(uint8_t byte1, uint8_t byte2) {
+emitByte(OpCode code) {
+    emitByte(opCodeToU8(code));
+}
+
+static void
+emitBytes(OpCode byte1, uint8_t byte2) {
     emitByte(byte1);
     emitByte(byte2);
 }
@@ -179,7 +187,7 @@ emitLoop(int loopStart) {
 }
 
 static int
-emitJump(uint8_t instruction) {
+emitJump(OpCode instruction) {
     emitByte(instruction);
     emitByte(0xff);
     emitByte(0xff);
@@ -260,25 +268,48 @@ getRule(TokenType type);
 static void
 parsePrecedence(Precedence precedence);
 
-// clang-format off
 static void
 binary(bool canAssign) {
     TokenType operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
-    parsePrecedence((Precedence)(rule->precedence + 1));
+    parsePrecedence(nextPrecedence(rule->precedence));
 
     switch (operatorType) {
-    case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
-    case TOKEN_EQUAL_EQUAL:   emitByte(OP_EQUAL); break;
-    case TOKEN_GREATER:       emitByte(OP_GREATER); break;
-    case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
-    case TOKEN_LESS:          emitByte(OP_LESS); break;
-    case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
-    case TOKEN_PLUS:          emitByte(OP_ADD); break;
-    case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
-    case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
-    case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
-    default: return; // Unreachable.
+    case TokenType::TOKEN_BANG_EQUAL:
+        emitByte(OpCode::OP_EQUAL);
+        emitByte(OpCode::OP_NOT);
+        break;
+    case TokenType::TOKEN_EQUAL_EQUAL:
+        emitByte(OpCode::OP_EQUAL);
+        break;
+    case TokenType::TOKEN_GREATER:
+        emitByte(OpCode::OP_GREATER);
+        break;
+    case TokenType::TOKEN_GREATER_EQUAL:
+        emitByte(OpCode::OP_LESS);
+        emitByte(OpCode::OP_NOT);
+        break;
+    case TokenType::TOKEN_LESS:
+        emitByte(OpCode::OP_LESS);
+        break;
+    case TokenType::TOKEN_LESS_EQUAL:
+        emitByte(OpCode::OP_GREATER);
+        emitByte(OpCode::OP_NOT);
+        break;
+    case TokenType::TOKEN_PLUS:
+        emitByte(OpCode::OP_ADD);
+        break;
+    case TokenType::TOKEN_MINUS:
+        emitByte(OpCode::OP_SUBTRACT);
+        break;
+    case TokenType::TOKEN_STAR:
+        emitByte(OpCode::OP_MULTIPLY);
+        break;
+    case TokenType::TOKEN_SLASH:
+        emitByte(OpCode::OP_DIVIDE);
+        break;
+    default:
+        return; // Unreachable.
     }
 }
 
@@ -311,23 +342,29 @@ dot(bool canAssign) {
 static void
 literal(bool canAssign) {
     switch (parser.previous.type) {
-    case TOKEN_FALSE: emitByte(OP_FALSE); break;
-    case TOKEN_NIL: emitByte(OP_NIL); break;
-    case TOKEN_TRUE: emitByte(OP_TRUE); break;
-    default: return; // Unreachable.
+    case TokenType::TOKEN_FALSE:
+        emitByte(OpCode::OP_FALSE);
+        break;
+    case TokenType::TOKEN_NIL:
+        emitByte(OpCode::OP_NIL);
+        break;
+    case TokenType::TOKEN_TRUE:
+        emitByte(OpCode::OP_TRUE);
+        break;
+    default:
+        return; // Unreachable.
     }
 }
-// clang-format on
 
 static void
 grouping(bool canAssign) {
     expression();
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
+    consume(TokenType::TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
 static void
 emitConstant(Value value) {
-    emitBytes(OP_CONSTANT, makeConstant(value));
+    emitBytes(OpCode::OP_CONSTANT, makeConstant(value));
 }
 
 static void
@@ -392,7 +429,7 @@ or_(bool canAssign) {
     patchJump(elseJump);
     emitByte(OpCode::OP_POP);
 
-    parsePrecedence(PREC_OR);
+    parsePrecedence(Precedence::PREC_OR);
     patchJump(endJump);
 }
 
@@ -410,7 +447,7 @@ resolveUpvalue(Compiler* compiler, Token* name);
 
 static void
 namedVariable(Token name, bool canAssign) {
-    uint8_t getOp, setOp;
+    OpCode getOp, setOp;
     int arg = resolveLocal(current, &name);
     if (arg != -1) {
         getOp = OpCode::OP_GET_LOCAL;
@@ -479,65 +516,68 @@ this_(bool canAssign) {
     variable(false);
 }
 
-// clang-format off
 static void
 unary(bool canAssign) {
     TokenType operatorType = parser.previous.type;
 
     // Compile the operand.
-    parsePrecedence(PREC_UNARY);
+    parsePrecedence(Precedence::PREC_UNARY);
 
     // Emit the operator instruction.
     switch (operatorType) {
-    case TOKEN_BANG: emitByte(OP_NOT); break;
-    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
-    default: return; // Unreachable.
+    case TokenType::TOKEN_BANG:
+        emitByte(OpCode::OP_NOT);
+        break;
+    case TokenType::TOKEN_MINUS:
+        emitByte(OpCode::OP_NEGATE);
+        break;
+    default:
+        return; // Unreachable.
     }
 }
-// clang-format on
 
 // clang-format off
 ParseRule rules[] = {
-  [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
-  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
-  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
-  [TOKEN_PLUS]          = {NULL,     binary, PREC_TERM},
-  [TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
-  [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE},
-  [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_NONE},
-  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_EQUAL_EQUAL]   = {NULL,     binary, PREC_EQUALITY},
-  [TOKEN_GREATER]       = {NULL,     binary, PREC_COMPARISON},
-  [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
-  [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
-  [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
-  [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
-  [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
-  [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
-  [TOKEN_AND]           = {NULL,     and_,   PREC_AND},
-  [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
-  [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_FUN]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_NIL]           = {literal,  NULL,   PREC_NONE},
-  [TOKEN_OR]            = {NULL,     or_,    PREC_OR},
-  [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_SUPER]         = {super_,   NULL,   PREC_NONE},
-  [TOKEN_THIS]          = {this_,    NULL,   PREC_NONE},
-  [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
-  [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
+  [(int)TokenType::TOKEN_LEFT_PAREN]    = {grouping, call,   Precedence::PREC_CALL},
+  [(int)TokenType::TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_LEFT_BRACE]    = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_COMMA]         = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_DOT]           = {NULL,     dot,    Precedence::PREC_CALL},
+  [(int)TokenType::TOKEN_MINUS]         = {unary,    binary, Precedence::PREC_TERM},
+  [(int)TokenType::TOKEN_PLUS]          = {NULL,     binary, Precedence::PREC_TERM},
+  [(int)TokenType::TOKEN_SEMICOLON]     = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_SLASH]         = {NULL,     binary, Precedence::PREC_FACTOR},
+  [(int)TokenType::TOKEN_STAR]          = {NULL,     binary, Precedence::PREC_FACTOR},
+  [(int)TokenType::TOKEN_BANG]          = {unary,    NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_BANG_EQUAL]    = {NULL,     binary, Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_EQUAL]         = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_EQUAL_EQUAL]   = {NULL,     binary, Precedence::PREC_EQUALITY},
+  [(int)TokenType::TOKEN_GREATER]       = {NULL,     binary, Precedence::PREC_COMPARISON},
+  [(int)TokenType::TOKEN_GREATER_EQUAL] = {NULL,     binary, Precedence::PREC_COMPARISON},
+  [(int)TokenType::TOKEN_LESS]          = {NULL,     binary, Precedence::PREC_COMPARISON},
+  [(int)TokenType::TOKEN_LESS_EQUAL]    = {NULL,     binary, Precedence::PREC_COMPARISON},
+  [(int)TokenType::TOKEN_IDENTIFIER]    = {variable, NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_STRING]        = {string,   NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_NUMBER]        = {number,   NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_AND]           = {NULL,     and_,   Precedence::PREC_AND},
+  [(int)TokenType::TOKEN_CLASS]         = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_ELSE]          = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_FALSE]         = {literal,  NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_FOR]           = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_FUN]           = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_IF]            = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_NIL]           = {literal,  NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_OR]            = {NULL,     or_,    Precedence::PREC_OR},
+  [(int)TokenType::TOKEN_PRINT]         = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_RETURN]        = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_SUPER]         = {super_,   NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_THIS]          = {this_,    NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_TRUE]          = {literal,  NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_VAR]           = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_WHILE]         = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_ERROR]         = {NULL,     NULL,   Precedence::PREC_NONE},
+  [(int)TokenType::TOKEN_EOF]           = {NULL,     NULL,   Precedence::PREC_NONE},
 };
 // clang-format on
 
@@ -550,7 +590,7 @@ parsePrecedence(Precedence precedence) {
         return;
     }
 
-    bool canAssign = precedence <= PREC_ASSIGNMENT;
+    bool canAssign = precedence <= Precedence::PREC_ASSIGNMENT;
     prefixRule(canAssign);
 
     while (precedence <= getRule(parser.current.type)->precedence) {
@@ -714,12 +754,12 @@ argumentList() {
 
 static ParseRule*
 getRule(TokenType type) {
-    return &rules[type];
+    return &rules[tokenTypeToInt(type)];
 }
 
 static void
 expression() {
-    parsePrecedence(PREC_ASSIGNMENT);
+    parsePrecedence(Precedence::PREC_ASSIGNMENT);
 }
 
 static void
@@ -748,8 +788,8 @@ function(FunctionType type) {
             defineVariable(constant);
         } while (match(TokenType::TOKEN_COMMA));
     }
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
-    consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
+    consume(TokenType::TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
+    consume(TokenType::TOKEN_LEFT_BRACE, "Expect '{' before function body.");
     block();
 
     ObjFunction* function = endCompiler();

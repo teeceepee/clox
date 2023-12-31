@@ -1,7 +1,7 @@
 #ifndef CLOX_SCANNER_H
 #define CLOX_SCANNER_H
 
-enum TokenType {
+enum class TokenType {
     // Single-character tokens.
     TOKEN_LEFT_PAREN,
     TOKEN_RIGHT_PAREN,
@@ -48,6 +48,11 @@ enum TokenType {
     TOKEN_ERROR,
     TOKEN_EOF,
 };
+
+int inline
+tokenTypeToInt(TokenType tokenType) {
+    return static_cast<int>(tokenType);
+}
 
 struct Token {
     TokenType type;

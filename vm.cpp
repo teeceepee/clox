@@ -301,7 +301,8 @@ run() {
                                (int)(frame->ip - frame->closure->function->chunk.code));
 #endif
 
-        uint8_t instruction = READ_BYTE();
+        uint8_t byte = READ_BYTE();
+        OpCode instruction{u8ToOpCode(byte)};
         switch (instruction) {
         case OpCode::OP_CONSTANT: {
             Value constant = READ_CONSTANT();

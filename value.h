@@ -50,7 +50,7 @@ numToValue(double num) {
 
 #else
 
-enum ValueType {
+enum class ValueType {
     VAL_BOOL,
     VAL_NIL,
     VAL_NUMBER,

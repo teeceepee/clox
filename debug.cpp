@@ -63,7 +63,8 @@ disassembleInstruction(Chunk* chunk, int offset) {
         printf("%4d ", chunk->lines[offset]);
     }
 
-    uint8_t instruction = chunk->code[offset];
+    uint8_t byte = chunk->code[offset];
+    OpCode instruction{u8ToOpCode(byte)};
     switch (instruction) {
     case OpCode::OP_CONSTANT:
         return constantInstruction("OP_CONSTANT", chunk, offset);
@@ -75,9 +76,9 @@ disassembleInstruction(Chunk* chunk, int offset) {
         return simpleInstruction("OP_FALSE", offset);
     case OpCode::OP_POP:
         return simpleInstruction("OP_POP", offset);
-    case OP_GET_LOCAL:
+    case OpCode::OP_GET_LOCAL:
         return byteInstruction("OP_GET_LOCAL", chunk, offset);
-    case OP_SET_LOCAL:
+    case OpCode::OP_SET_LOCAL:
         return byteInstruction("OP_SET_LOCAL", chunk, offset);
     case OpCode::OP_GET_GLOBAL:
         return constantInstruction("OP_GET_GLOBAL", chunk, offset);
@@ -85,9 +86,9 @@ disassembleInstruction(Chunk* chunk, int offset) {
         return constantInstruction("OP_DEFINE_GLOBAL", chunk, offset);
     case OpCode::OP_SET_GLOBAL:
         return constantInstruction("OP_SET_GLOBAL", chunk, offset);
-    case OP_GET_UPVALUE:
+    case OpCode::OP_GET_UPVALUE:
         return byteInstruction("OP_GET_UPVALUE", chunk, offset);
-    case OP_SET_UPVALUE:
+    case OpCode::OP_SET_UPVALUE:
         return byteInstruction("OP_SET_UPVALUE", chunk, offset);
     case OpCode::OP_GET_PROPERTY:
         return constantInstruction("OP_GET_PROPERTY", chunk, offset);
@@ -115,17 +116,17 @@ disassembleInstruction(Chunk* chunk, int offset) {
         return simpleInstruction("OP_NEGATE", offset);
     case OpCode::OP_PRINT:
         return simpleInstruction("OP_PRINT", offset);
-    case OP_JUMP:
+    case OpCode::OP_JUMP:
         return jumpInstruction("OP_JUMP", 1, chunk, offset);
-    case OP_JUMP_IF_FALSE:
+    case OpCode::OP_JUMP_IF_FALSE:
         return jumpInstruction("OP_JUMP_IF_FALSE", 1, chunk, offset);
-    case OP_LOOP:
+    case OpCode::OP_LOOP:
         return jumpInstruction("OP_LOOP", -1, chunk, offset);
-    case OP_CALL:
+    case OpCode::OP_CALL:
         return byteInstruction("OP_CALL", chunk, offset);
     case OpCode::OP_INVOKE:
         return invokeInstruction("OP_INVOKE", chunk, offset);
-    case OP_CLOSURE: {
+    case OpCode::OP_CLOSURE: {
         offset++;
         uint8_t constant = chunk->code[offset++];
         printf("%-16s %4d ", "OP_CLOSURE", constant);
@@ -141,7 +142,7 @@ disassembleInstruction(Chunk* chunk, int offset) {
 
         return offset;
     }
-    case OP_CLOSE_UPVALUE:
+    case OpCode::OP_CLOSE_UPVALUE:
         return simpleInstruction("OP_CLOSE_UPVALUE", offset);
     case OpCode::OP_RETURN:
         return simpleInstruction("OP_RETURN", offset);
@@ -152,7 +153,7 @@ disassembleInstruction(Chunk* chunk, int offset) {
     case OpCode::OP_METHOD:
         return constantInstruction("OP_METHOD", chunk, offset);
     default:
-        printf("Unknown opcode %d\n", instruction);
+        printf("Unknown opcode %d\n", opCodeToU8(instruction));
         return offset + 1;
     }
 }

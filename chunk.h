@@ -4,7 +4,7 @@
 #include "common.h"
 #include "value.h"
 
-enum OpCode {
+enum class OpCode: uint8_t {
     OP_CONSTANT,
     OP_NIL,
     OP_TRUE,
@@ -43,6 +43,16 @@ enum OpCode {
     OP_INHERIT,
     OP_METHOD,
 };
+
+OpCode inline
+u8ToOpCode(uint8_t i) {
+    return static_cast<OpCode>(i);
+}
+
+uint8_t inline
+opCodeToU8(OpCode code) {
+    return static_cast<uint8_t>(code);
+}
 
 struct Chunk {
     int count;

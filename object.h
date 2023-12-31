@@ -25,7 +25,7 @@
 #define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
 
-enum ObjType {
+enum class ObjType {
     OBJ_BOUND_METHOD,
     OBJ_CLASS,
     OBJ_CLOSURE,
