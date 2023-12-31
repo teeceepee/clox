@@ -10,6 +10,7 @@ struct ObjString;
 
 #include <cstring>
 
+// clang-format off
 #define SIGN_BIT ((uint64_t)0x8000'0000'0000'0000) // NOTE: 1 << 63
 #define QNAN     ((uint64_t)0x7ffc'0000'0000'0000) // NOTE: 0b0'11111111111'1100 << 48
 
@@ -34,8 +35,10 @@ typedef uint64_t Value;
 #define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))
 #define NUMBER_VAL(num) numToValue(num)
 #define OBJ_VAL(obj)    (Value)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))
+// clang-format on
 
-static inline double valueToNum(Value value) {
+static inline double
+valueToNum(Value value) {
     double num;
     memcpy(&num, &value, sizeof(Value));
     return num;
