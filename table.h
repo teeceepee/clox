@@ -42,4 +42,9 @@ tableRemoveWhite(Table* table);
 void
 markTable(Table* table);
 
+inline uint32_t
+modulo(uint32_t index, int capacity) {
+    return index & (capacity - 1);
+}
+
 #endif
