@@ -1,6 +1,7 @@
 #ifndef CLOX_VALUE_H
 #define CLOX_VALUE_H
 
+#include "collection/Vec.h"
 #include "common.h"
 
 struct Obj;
@@ -87,25 +88,21 @@ struct Value {
 
 #endif
 
-struct ValueArray {
-  int count;
-  int capacity;
-  Value* values;
-};
-
 bool
 valuesEqual(Value a, Value b);
 
 void
-initValueArray(ValueArray* array);
-
-void
-writeValueArray(ValueArray* array, Value value);
-
-void
-freeValueArray(ValueArray* array);
-
-void
 printValue(Value value);
+
+class ValueArray {
+public:
+  int
+  writeValue(Value value);
+
+  void
+  gcMark();
+
+  Vec<Value> values;
+};
 
 #endif

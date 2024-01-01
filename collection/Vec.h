@@ -10,6 +10,9 @@ public:
   void
   push(T item);
 
+  T
+  operator[](int index);
+
   int capacity;
   int count;
   T* items;
@@ -38,4 +41,10 @@ Vec<T>::push(T item) {
 
   this->items[this->count] = item;
   this->count += 1;
+}
+
+template <typename T>
+T
+Vec<T>::operator[](int index) {
+  return this->items[index];
 }

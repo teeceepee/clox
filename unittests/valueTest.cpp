@@ -14,3 +14,19 @@ TEST(ValueTest, EqualityTC) {
   ASSERT_TRUE(valuesEqual(FALSE_VAL, FALSE_VAL));
   ASSERT_TRUE(valuesEqual(TRUE_VAL, TRUE_VAL));
 }
+
+TEST(ValueArrayTest, CtorTC) {
+  ValueArray values;
+  ASSERT_EQ(0, values.values.count);
+}
+
+TEST(ValueArrayTest, WriteValueTC) {
+  ValueArray values;
+  ASSERT_EQ(0, values.values.count);
+
+  values.writeValue(NIL_VAL);
+  ASSERT_EQ(1, values.values.count);
+
+  values.writeValue(NIL_VAL);
+  ASSERT_EQ(2, values.values.count);
+}

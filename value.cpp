@@ -7,30 +7,6 @@
 #include <cstring>
 
 void
-initValueArray(ValueArray* array) {
-  array->count = 0;
-  array->capacity = 0;
-  array->values = nullptr;
-}
-
-void
-writeValueArray(ValueArray* array, Value value) {
-  if (array->capacity < array->count + 1) {
-    int oldCapacity = array->capacity;
-    array->capacity = GROW_CAPACITY(oldCapacity);
-    array->values = GROW_ARRAY(Value, array->values, oldCapacity, array->capacity);
-  }
-
-  array->values[array->count] = value;
-  array->count += 1;
-}
-
-void
-freeValueArray(ValueArray* array) {
-  FREE_ARRAY(Value, array->values, array->capacity);
-}
-
-void
 printValue(Value value) {
 #ifdef NAN_BOXING
   if (IS_BOOL(value)) {
@@ -88,4 +64,18 @@ valuesEqual(Value a, Value b) {
     return false; // Unreachable.
   }
 #endif
+}
+
+int
+ValueArray::writeValue(Value value) {
+  const int idx = this->values.count;
+  this->values.push(value);
+  return idx;
+}
+
+void
+ValueArray::gcMark() {
+  for (int i = 0; i < this->values.count; i++) {
+    markValue(this->values[i]);
+  }
 }

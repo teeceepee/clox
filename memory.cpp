@@ -76,13 +76,6 @@ markValue(Value value) {
 }
 
 static void
-markArray(ValueArray* array) {
-  for (int i = 0; i < array->count; i++) {
-    markValue(array->values[i]);
-  }
-}
-
-static void
 blackenObject(Obj* object) {
 #ifdef DEBUG_LOG_GC
   printf("%p blacken ", (void*)object);
@@ -114,7 +107,7 @@ blackenObject(Obj* object) {
   case ObjType::OBJ_FUNCTION: {
     ObjFunction* function = (ObjFunction*)object;
     markObject((Obj*)function->name);
-    markArray(&(function->chunk.constants));
+    function->chunk.constants.gcMark();
     break;
   }
   case ObjType::OBJ_INSTANCE: {

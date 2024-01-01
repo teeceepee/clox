@@ -2,7 +2,14 @@
 #define CLOX_MEMORY_H
 
 #include "common.h"
-#include "value.h"
+// NOTE: use forward declaration instead of include the header file to resolve compilation errors.
+// #include "value.h"
+struct Obj;
+#ifdef NAN_BOXING
+typedef uint64_t Value;
+#else
+struct Value;
+#endif
 
 // clang-format off
 #define ALLOCATE(type, count) \
