@@ -6,6 +6,7 @@
 #include "table.h"
 #include "value.h"
 
+// clang-format off
 #define OBJ_TYPE(value)        (AS_OBJ(value)->type)
 
 #define IS_BOUND_METHOD(value) isObjType(value, ObjType::OBJ_BOUND_METHOD)
@@ -24,76 +25,77 @@
 #define AS_NATIVE(value)       (((ObjNative*)AS_OBJ(value))->function)
 #define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
+// clang-format on
 
 enum class ObjType {
-    OBJ_BOUND_METHOD,
-    OBJ_CLASS,
-    OBJ_CLOSURE,
-    OBJ_FUNCTION,
-    OBJ_INSTANCE,
-    OBJ_NATIVE,
-    OBJ_STRING,
-    OBJ_UPVALUE,
+  OBJ_BOUND_METHOD,
+  OBJ_CLASS,
+  OBJ_CLOSURE,
+  OBJ_FUNCTION,
+  OBJ_INSTANCE,
+  OBJ_NATIVE,
+  OBJ_STRING,
+  OBJ_UPVALUE,
 };
 
 struct Obj {
-    ObjType type;
-    bool isMarked;
-    Obj* next;
+  ObjType type;
+  bool isMarked;
+  Obj* next;
 };
 
 struct ObjFunction {
-    Obj obj;
-    int arity;
-    int upvalueCount;
-    Chunk chunk;
-    ObjString* name;
+  Obj obj;
+  int arity;
+  int upvalueCount;
+  Chunk chunk;
+  ObjString* name;
 };
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
 struct ObjNative {
-    Obj obj;
-    NativeFn function;
+  Obj obj;
+  NativeFn function;
 };
 
 struct ObjString {
-    Obj obj;
-    int length;
-    char* chars;
-    uint32_t hash;
+  Obj obj;
+  int length;
+  char* chars;
+  uint32_t hash;
 };
 
 struct ObjUpvalue {
-    Obj obj;
-    Value* location;
-    Value closed;
-    ObjUpvalue* next;
+  Obj obj;
+  Value* location;
+  Value closed;
+  ObjUpvalue* next;
 };
 
 struct ObjClosure {
-    Obj obj;
-    ObjFunction* function;
-    ObjUpvalue** upvalues;
-    int upvalueCount;
+  Obj obj;
+  ObjFunction* function;
+  ObjUpvalue** upvalues;
+  int upvalueCount;
 };
 
 struct ObjClass {
-    Obj obj;
-    ObjString* name;
-    Table methods;
+  Obj obj;
+  ObjString* name;
+  Table methods;
 };
 
 struct ObjInstance {
-    Obj obj;
-    ObjClass* klass;
-    Table fields;
+  Obj obj;
+  ObjClass* klass;
+  Table fields;
 };
 
 struct ObjBoundMethod {
-    Obj obj;
-    Value receiver;
-    ObjClosure* method;
+  Obj obj;
+  Value receiver;
+  ObjClosure* method;
 };
 
 ObjBoundMethod*
@@ -128,7 +130,7 @@ printObject(Value value);
 
 static inline bool
 isObjType(Value value, ObjType type) {
-    return IS_OBJ(value) && AS_OBJ(value)->type == type;
+  return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
 
 #endif

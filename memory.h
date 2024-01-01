@@ -4,6 +4,7 @@
 #include "common.h"
 #include "value.h"
 
+// clang-format off
 #define ALLOCATE(type, count) \
     (type*)reallocate(NULL, 0, sizeof(type) * (count))
 
@@ -17,6 +18,7 @@
 
 #define FREE_ARRAY(type, pointer, oldCount) \
     reallocate(pointer, sizeof(type) * (oldCount), 0)
+// clang-format on
 
 void*
 reallocate(void* pointer, size_t oldSize, size_t newSize);
@@ -30,6 +32,7 @@ markValue(Value value);
 void
 collectGarbage();
 
-void freeObjects();
+void
+freeObjects();
 
 #endif

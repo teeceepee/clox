@@ -5,14 +5,14 @@
 #include "value.h"
 
 struct Entry {
-    ObjString* key;
-    Value value;
+  ObjString* key;
+  Value value;
 };
 
 struct Table {
-    int count;
-    int capacity;
-    Entry* entries;
+  int count;
+  int capacity;
+  Entry* entries;
 };
 
 void
@@ -44,7 +44,7 @@ markTable(Table* table);
 
 inline uint32_t
 modulo(uint32_t index, int capacity) {
-    return index & (capacity - 1);
+  return index & (capacity - 1);
 }
 
 #endif

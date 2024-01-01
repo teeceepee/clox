@@ -10,35 +10,35 @@
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
 struct CallFrame {
-    ObjClosure* closure;
-    uint8_t* ip;
-    Value* slots;
+  ObjClosure* closure;
+  uint8_t* ip;
+  Value* slots;
 };
 
 struct VM {
-    CallFrame frames[FRAMES_MAX];
-    int frameCount;
+  CallFrame frames[FRAMES_MAX];
+  int frameCount;
 
-    Value stack[STACK_MAX];
-    Value* stackTop;
-    Table globals;
-    Table strings;
-    ObjString* initString;
-    ObjUpvalue* openUpvalues;
+  Value stack[STACK_MAX];
+  Value* stackTop;
+  Table globals;
+  Table strings;
+  ObjString* initString;
+  ObjUpvalue* openUpvalues;
 
-    size_t bytesAllocated;
-    size_t nextGC;
+  size_t bytesAllocated;
+  size_t nextGC;
 
-    Obj* objects;
-    int grayCount;
-    int grayCapacity;
-    Obj** grayStack;
+  Obj* objects;
+  int grayCount;
+  int grayCapacity;
+  Obj** grayStack;
 };
 
 enum class InterpretResult {
-    INTERPRET_OK,
-    INTERPRET_COMPILE_ERROR,
-    INTERPRET_RUNTIME_ERROR,
+  INTERPRET_OK,
+  INTERPRET_COMPILE_ERROR,
+  INTERPRET_RUNTIME_ERROR,
 };
 
 extern VM vm;

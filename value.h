@@ -39,34 +39,34 @@ typedef uint64_t Value;
 
 static inline double
 valueToNum(Value value) {
-    double num;
-    memcpy(&num, &value, sizeof(Value));
-    return num;
+  double num;
+  memcpy(&num, &value, sizeof(Value));
+  return num;
 }
 
 static inline Value
 numToValue(double num) {
-    Value value;
-    memcpy(&value, &num, sizeof(double));
-    return value;
+  Value value;
+  memcpy(&value, &num, sizeof(double));
+  return value;
 }
 
 #else
 
 enum class ValueType {
-    VAL_BOOL,
-    VAL_NIL,
-    VAL_NUMBER,
-    VAL_OBJ,
+  VAL_BOOL,
+  VAL_NIL,
+  VAL_NUMBER,
+  VAL_OBJ,
 };
 
 struct Value {
-    ValueType type;
-    union {
-        bool boolean;
-        double number;
-        Obj* obj;
-    } as;
+  ValueType type;
+  union {
+    bool boolean;
+    double number;
+    Obj* obj;
+  } as;
 };
 
 // clang-format off
@@ -88,9 +88,9 @@ struct Value {
 #endif
 
 struct ValueArray {
-    int count;
-    int capacity;
-    Value* values;
+  int count;
+  int capacity;
+  Value* values;
 };
 
 bool

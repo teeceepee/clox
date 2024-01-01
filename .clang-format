@@ -1,8 +1,8 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
-IndentWidth: 4
+IndentWidth: 2
 ColumnLimit: 120
-AlwaysBreakAfterReturnType: TopLevel
+AlwaysBreakAfterReturnType: All
 PointerAlignment: Left
 ...
