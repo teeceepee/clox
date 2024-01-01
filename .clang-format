@@ -3,6 +3,7 @@ Language: Cpp
 BasedOnStyle: LLVM
 IndentWidth: 2
 ColumnLimit: 120
+AlwaysBreakTemplateDeclarations: Yes
 AlwaysBreakAfterReturnType: All
 PointerAlignment: Left
 ...

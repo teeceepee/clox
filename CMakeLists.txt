@@ -25,6 +25,7 @@ add_executable(clox
     object.cpp
     table.h
     table.cpp
+    collection/Vec.h
 )
 
 # GTest
@@ -33,7 +34,7 @@ find_package(GTest REQUIRED)
 
 add_executable(testRunner
     unittests/testRunner.cpp
-    unittests/collection/VectorTest.cpp
+    unittests/collection/VecTest.cpp
     unittests/commonTest.cpp
     unittests/valueTest.cpp
 
@@ -56,6 +57,7 @@ add_executable(testRunner
     object.cpp
     table.h
     table.cpp
+    collection/Vec.h
 )
 
 target_link_libraries(testRunner ${GTEST_LIBRARIES} pthread)
