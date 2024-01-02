@@ -64,7 +64,7 @@ newFunction() {
   function->arity = 0;
   function->upvalueCount = 0;
   function->name = nullptr;
-  initChunk(&(function->chunk));
+  // initChunk(&(function->chunk)); // TODO ctor
   return function;
 }
 

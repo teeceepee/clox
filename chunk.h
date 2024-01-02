@@ -54,24 +54,20 @@ opCodeToU8(OpCode code) {
   return static_cast<uint8_t>(code);
 }
 
-struct Chunk {
-  int count;
-  int capacity;
-  uint8_t* code;
-  int* lines;
+class Chunk {
+public:
+  void
+  writeChunk(uint8_t byte, int line);
+
+  int
+  addConstant(Value value);
+
+  int
+  getCount() const;
+
+  Vec<uint8_t> code;
+  Vec<int> lines;
   ValueArray constants;
 };
-
-void
-initChunk(Chunk* chunk);
-
-void
-freeChunk(Chunk* chunk);
-
-void
-writeChunk(Chunk* chunk, uint8_t byte, int line);
-
-int
-addConstant(Chunk* chunk, Value value);
 
 #endif

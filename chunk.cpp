@@ -1,42 +1,22 @@
-#include <cstdlib>
-
 #include "chunk.h"
 #include "memory.h"
 #include "vm.h"
 
 void
-initChunk(Chunk* chunk) {
-  chunk->count = 0;
-  chunk->capacity = 0;
-  chunk->code = nullptr;
-  chunk->lines = nullptr;
-}
-
-void
-freeChunk(Chunk* chunk) {
-  FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
-  FREE_ARRAY(int, chunk->lines, chunk->capacity);
-  initChunk(chunk);
-}
-
-void
-writeChunk(Chunk* chunk, uint8_t byte, int line) {
-  if (chunk->capacity < chunk->count + 1) {
-    int oldCapacity = chunk->capacity;
-    chunk->capacity = GROW_CAPACITY(oldCapacity);
-    chunk->code = GROW_ARRAY(uint8_t, chunk->code, oldCapacity, chunk->capacity);
-    chunk->lines = GROW_ARRAY(int, chunk->lines, oldCapacity, chunk->capacity);
-  }
-
-  chunk->code[chunk->count] = byte;
-  chunk->lines[chunk->count] = line;
-  chunk->count += 1;
+Chunk::writeChunk(uint8_t byte, int line) {
+  this->code.push(byte);
+  this->lines.push(line);
 }
 
 int
-addConstant(Chunk* chunk, Value value) {
+Chunk::addConstant(Value value) {
   push(value);
-  const int idx = chunk->constants.writeValue(value);
+  const int idx = this->constants.writeValue(value);
   pop();
   return idx;
+}
+
+int
+Chunk::getCount() const {
+  return this->code.count;
 }

@@ -159,7 +159,7 @@ match(TokenType type) {
 
 static void
 emitByte(uint8_t byte) {
-  writeChunk(currentChunk(), byte, parser.previous.line);
+  currentChunk()->writeChunk(byte, parser.previous.line);
 }
 
 static void
@@ -177,7 +177,7 @@ static void
 emitLoop(int loopStart) {
   emitByte(OpCode::OP_POP);
 
-  int offset = currentChunk()->count - loopStart + 2;
+  int offset = currentChunk()->getCount() - loopStart + 2;
   if (offset > UINT16_MAX) {
     error("Loop body too large.");
   }
@@ -191,7 +191,7 @@ emitJump(OpCode instruction) {
   emitByte(instruction);
   emitByte(0xff);
   emitByte(0xff);
-  return currentChunk()->count - 2;
+  return currentChunk()->getCount() - 2;
 }
 
 static void
@@ -207,13 +207,13 @@ emitReturn() {
 
 static uint8_t
 makeConstant(Value value) {
-  int constant = addConstant(currentChunk(), value);
-  if (constant > UINT8_MAX) {
+  const int constantIdx = currentChunk()->addConstant(value);
+  if (constantIdx > UINT8_MAX) {
     error("Too many constants in one chunk.");
     return 0;
   }
 
-  return (uint8_t)constant;
+  return (uint8_t)constantIdx;
 }
 
 static ObjFunction*
@@ -370,7 +370,7 @@ emitConstant(Value value) {
 static void
 patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
-  int jump = currentChunk()->count - offset - 2;
+  int jump = currentChunk()->getCount() - offset - 2;
 
   if (jump > UINT16_MAX) {
     error("Too much code to jump over.");
@@ -901,7 +901,7 @@ forStatement() {
     expressionStatement();
   }
 
-  int loopStart = currentChunk()->count;
+  int loopStart = currentChunk()->getCount();
   int exitJump = -1;
   if (!match(TokenType::TOKEN_SEMICOLON)) {
     expression();
@@ -913,7 +913,7 @@ forStatement() {
 
   if (!match(TokenType::TOKEN_RIGHT_PAREN)) {
     int bodyJump = emitJump(OpCode::OP_JUMP);
-    int incrementStart = currentChunk()->count;
+    int incrementStart = currentChunk()->getCount();
     expression();
     emitByte(OpCode::OP_POP);
     consume(TokenType::TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
@@ -984,7 +984,7 @@ returnStatement() {
 
 static void
 whileStatement() {
-  int loopStart = currentChunk()->count;
+  int loopStart = currentChunk()->getCount();
   consume(TokenType::TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
   expression();
   consume(TokenType::TOKEN_RIGHT_PAREN, "Expect ')' after condition.");

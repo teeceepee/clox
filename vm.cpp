@@ -34,14 +34,16 @@ runtimeError(const char* format, ...) {
 
   CallFrame* frame = &(vm.frames[vm.frameCount - 1]);
   ObjFunction* function = frame->closure->function;
-  size_t instruction = frame->ip - function->chunk.code - 1;
+
+  size_t instruction = frame->ip - function->chunk.code.beginning() - 1;
+
   int line = function->chunk.lines[instruction];
   fprintf(stderr, "[line %d] in script\n", line);
   resetStack();
 
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &(vm.frames[i]);
-    size_t instruction = frame->ip - function->chunk.code - 1;
+    size_t instruction = frame->ip - function->chunk.code.beginning() - 1;
     fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
     if (function->name == nullptr) {
       fprintf(stderr, "script\n");
@@ -119,7 +121,7 @@ call(ObjClosure* closure, int argCount) {
 
   CallFrame* frame = &(vm.frames[vm.frameCount++]);
   frame->closure = closure;
-  frame->ip = closure->function->chunk.code;
+  frame->ip = closure->function->chunk.code.beginning();
   frame->slots = vm.stackTop - argCount - 1;
   return true;
 }
@@ -297,7 +299,8 @@ run() {
       printf(" ]");
     }
     printf("\n");
-    disassembleInstruction(&(frame->closure->function->chunk), (int)(frame->ip - frame->closure->function->chunk.code));
+    disassembleInstruction(&(frame->closure->function->chunk),
+                           (int)(frame->ip - frame->closure->function->chunk.code.beginning()));
 #endif
 
     uint8_t byte = READ_BYTE();

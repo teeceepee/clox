@@ -34,6 +34,8 @@ find_package(GTest REQUIRED)
 
 add_executable(testRunner
     unittests/testRunner.cpp
+
+    unittests/chunkTest.cpp
     unittests/collection/VecTest.cpp
     unittests/commonTest.cpp
     unittests/valueTest.cpp

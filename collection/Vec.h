@@ -10,7 +10,10 @@ public:
   void
   push(T item);
 
-  T
+  T*
+  beginning();
+
+  T&
   operator[](int index);
 
   int capacity;
@@ -44,7 +47,13 @@ Vec<T>::push(T item) {
 }
 
 template <typename T>
-T
+T*
+Vec<T>::beginning() {
+  return this->items;
+}
+
+template <typename T>
+T&
 Vec<T>::operator[](int index) {
   return this->items[index];
 }

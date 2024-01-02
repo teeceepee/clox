@@ -151,7 +151,7 @@ freeObject(Obj* object) {
   }
   case ObjType::OBJ_FUNCTION: {
     ObjFunction* function = (ObjFunction*)object;
-    freeChunk(&(function->chunk));
+    // freeChunk(&(function->chunk)); // TODO dtor
     FREE(ObjFunction, object);
     break;
   }
