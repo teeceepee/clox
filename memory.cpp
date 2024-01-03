@@ -106,8 +106,7 @@ blackenObject(Obj* object) {
   }
   case ObjType::OBJ_FUNCTION: {
     ObjFunction* function = (ObjFunction*)object;
-    markObject((Obj*)function->name);
-    function->chunk.constants.gcMark();
+    function->gcMark();
     break;
   }
   case ObjType::OBJ_INSTANCE: {
@@ -151,8 +150,7 @@ freeObject(Obj* object) {
   }
   case ObjType::OBJ_FUNCTION: {
     ObjFunction* function = (ObjFunction*)object;
-    // freeChunk(&(function->chunk)); // TODO dtor
-    FREE(ObjFunction, object);
+    delete function;
     break;
   }
   case ObjType::OBJ_INSTANCE: {

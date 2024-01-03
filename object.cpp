@@ -28,6 +28,33 @@ allocateObject(size_t size, ObjType type) {
   return object;
 }
 
+Obj::
+Obj(const ObjType type)
+    : type{type}, isMarked{false} {
+  this->next = vm.objects;
+  vm.objects = this;
+}
+
+ObjFunction::
+ObjFunction()
+    : Obj{ObjType::OBJ_FUNCTION}, arity{0}, upvalueCount{0}, name{nullptr} {}
+
+void
+ObjFunction::gcMark() {
+  markObject((Obj*)this->name);
+  this->chunk.constants.gcMark();
+}
+
+void*
+ObjFunction::operator new(size_t size) {
+  return reallocate(nullptr, 0, size);
+}
+
+void
+ObjFunction::operator delete(void* ptr) {
+  reallocate(ptr, sizeof(ObjFunction), 0);
+}
+
 ObjBoundMethod*
 newBoundMethod(Value receiver, ObjClosure* method) {
   ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, ObjType::OBJ_BOUND_METHOD);
@@ -60,12 +87,7 @@ newClosure(ObjFunction* function) {
 
 ObjFunction*
 newFunction() {
-  ObjFunction* function = ALLOCATE_OBJ(ObjFunction, ObjType::OBJ_FUNCTION);
-  function->arity = 0;
-  function->upvalueCount = 0;
-  function->name = nullptr;
-  // initChunk(&(function->chunk)); // TODO ctor
-  return function;
+  return new ObjFunction{};
 }
 
 ObjInstance*

@@ -38,18 +38,35 @@ enum class ObjType {
   OBJ_UPVALUE,
 };
 
-struct Obj {
+class Obj {
+public:
+  explicit
+  Obj(ObjType type);
+
+  // virtual void
+  // gcMark() = 0;
+
   ObjType type;
   bool isMarked;
   Obj* next;
 };
 
-struct ObjFunction {
-  Obj obj;
+class ObjFunction : Obj {
+public:
+  ObjFunction();
+
+  void
+  gcMark();
+
+  void*
+  operator new(size_t size);
+  void
+  operator delete(void* ptr);
+
   int arity;
   int upvalueCount;
   Chunk chunk;
-  ObjString* name;
+  ObjString* name; // owned
 };
 
 typedef Value (*NativeFn)(int argCount, Value* args);

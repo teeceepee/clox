@@ -4,7 +4,7 @@
 #include "common.h"
 // NOTE: use forward declaration instead of include the header file to resolve compilation errors.
 // #include "value.h"
-struct Obj;
+class Obj;
 #ifdef NAN_BOXING
 typedef uint64_t Value;
 #else
