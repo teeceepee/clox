@@ -27,6 +27,7 @@ add_executable(clox
     table.h
     table.cpp
     collection/Vec.h
+    lims.h
 )
 
 # GTest
@@ -61,6 +62,7 @@ add_executable(testRunner
     table.h
     table.cpp
     collection/Vec.h
+    lims.h
 )
 
 target_link_libraries(testRunner ${GTEST_LIBRARIES} pthread)

@@ -1,6 +1,7 @@
 #include "compiler.h"
 
 #include "common.h"
+#include "lims.h"
 #include "memory.h"
 #include "object.h"
 #include "scanner.h"
@@ -70,9 +71,9 @@ struct Compiler {
   ObjFunction* function;
   FunctionType type;
 
-  Local locals[UINT8_COUNT];
+  Local locals[lims::UINT8_VAL_COUNT];
   int localCount;
-  Upvalue upvalues[UINT8_COUNT];
+  Upvalue upvalues[lims::UINT8_VAL_COUNT];
   int scopeDepth;
 };
 
@@ -208,7 +209,7 @@ emitReturn() {
 static uint8_t
 makeConstant(Value value) {
   const int constantIdx = currentChunk()->addConstant(value);
-  if (constantIdx > UINT8_MAX) {
+  if (constantIdx > lims::CONSTANT_INDEX_MAX) {
     error("Too many constants in one chunk.");
     return 0;
   }
@@ -371,6 +372,7 @@ static void
 patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
   int jump = currentChunk()->getCount() - offset - 2;
+
 
   if (jump > UINT16_MAX) {
     error("Too much code to jump over.");
@@ -643,7 +645,7 @@ addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
     }
   }
 
-  if (upvalueCount == UINT8_COUNT) {
+  if (upvalueCount == lims::UINT8_VAL_COUNT) {
     error("Too many closure variables in function.");
     return 0;
   }
@@ -675,7 +677,7 @@ resolveUpvalue(Compiler* compiler, Token* name) {
 
 static void
 addLocal(Token name) {
-  if (current->localCount == UINT8_COUNT) {
+  if (current->localCount == lims::UINT8_VAL_COUNT) {
     error("Too many local variables in function.");
     return;
   }

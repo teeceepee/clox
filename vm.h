@@ -2,12 +2,10 @@
 #define CLOX_VM_H
 
 #include "chunk.h"
+#include "lims.h"
 #include "object.h"
 #include "table.h"
 #include "value.h"
-
-#define FRAMES_MAX 64
-#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
 struct CallFrame {
   ObjClosure* closure;
@@ -16,10 +14,10 @@ struct CallFrame {
 };
 
 struct VM {
-  CallFrame frames[FRAMES_MAX];
+  CallFrame frames[lims::FRAMES_MAX];
   int frameCount;
 
-  Value stack[STACK_MAX];
+  Value stack[lims::STACK_MAX];
   Value* stackTop;
   Table globals;
   Table strings;
