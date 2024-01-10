@@ -773,6 +773,9 @@ block() {
   consume(TokenType::TOKEN_RIGHT_BRACE, "Expect '}' after block");
 }
 
+/**
+ * @nonterminal
+ */
 static void
 function(FunctionType type) {
   Compiler compiler;
@@ -863,6 +866,9 @@ classDeclaration() {
   currentClass = currentClass->enclosing;
 }
 
+/**
+ * @nonterminal
+ */
 static void
 funDeclaration() {
   uint8_t global = parseVariable("Expect function name.");
@@ -1023,6 +1029,9 @@ synchronize() {
   }
 }
 
+/**
+ * @nonterminal
+ */
 static void
 declaration() {
   if (match(TokenType::TOKEN_CLASS)) {
