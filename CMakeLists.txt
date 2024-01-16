@@ -40,6 +40,7 @@ add_executable(testRunner
     unittests/chunkTest.cpp
     unittests/collection/VecTest.cpp
     unittests/commonTest.cpp
+    unittests/limsTest.cpp
     unittests/valueTest.cpp
 
     common.h
