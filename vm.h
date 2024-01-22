@@ -2,6 +2,8 @@
 #define CLOX_VM_H
 
 #include "chunk.h"
+#include "collections/Arr.h"
+#include "collections/ArrStack.h"
 #include "lims.h"
 #include "object.h"
 #include "table.h"
@@ -14,11 +16,8 @@ struct CallFrame {
 };
 
 struct VM {
-  CallFrame frames[lims::FRAMES_MAX];
-  int frameCount;
-
-  Value stack[lims::STACK_MAX];
-  Value* stackTop;
+  Arr<CallFrame, lims::FRAMES_MAX> frames;
+  ArrStack<Value, lims::STACK_MAX> stack;
   Table globals;
   Table strings;
   ObjString* initString;

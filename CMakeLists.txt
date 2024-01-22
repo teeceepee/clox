@@ -28,6 +28,8 @@ add_executable(clox
     table.cpp
     collections/Vec.h
     lims.h
+    collections/Arr.h
+    collections/ArrStack.h
 )
 
 # GTest
@@ -38,6 +40,8 @@ add_executable(testRunner
     unittests/testRunner.cpp
 
     unittests/chunkTest.cpp
+    unittests/collections/ArrStackTest.cpp
+    unittests/collections/ArrTest.cpp
     unittests/collections/VecTest.cpp
     unittests/commonTest.cpp
     unittests/limsTest.cpp
@@ -64,6 +68,8 @@ add_executable(testRunner
     table.cpp
     collections/Vec.h
     lims.h
+    collections/Arr.h
+    collections/ArrStack.h
 )
 
 target_link_libraries(testRunner ${GTEST_LIBRARIES} pthread)

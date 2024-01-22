@@ -178,11 +178,11 @@ freeObject(Obj* object) {
 
 static void
 markRoots() {
-  for (Value* slot = vm.stack; slot < vm.stackTop; slot++) { // NOTE: pointer self increment
+  for (Value* slot = vm.stack.bottom(); slot < vm.stack.top(); slot++) { // NOTE: pointer self increment
     markValue(*slot);
   }
 
-  for (int i = 0; i < vm.frameCount; i++) {
+  for (int i = 0; i < vm.frames.count; i++) {
     markObject((Obj*)(vm.frames[i].closure));
   }
 

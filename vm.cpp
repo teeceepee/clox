@@ -19,8 +19,8 @@ clockNative(int argCount, Value* args) {
 
 static void
 resetStack() {
-  vm.stackTop = vm.stack;
-  vm.frameCount = 0;
+  vm.stack.clear();
+  vm.frames.clear();
   vm.openUpvalues = nullptr;
 }
 
@@ -32,7 +32,7 @@ runtimeError(const char* format, ...) {
   va_end(args);
   fputs("\n", stderr);
 
-  CallFrame* frame = &(vm.frames[vm.frameCount - 1]);
+  CallFrame* frame = &(vm.frames.last());
   ObjFunction* function = frame->closure->function;
 
   size_t instruction = frame->ip - function->chunk.code.beginning() - 1;
@@ -41,7 +41,7 @@ runtimeError(const char* format, ...) {
   fprintf(stderr, "[line %d] in script\n", line);
   resetStack();
 
-  for (int i = vm.frameCount - 1; i >= 0; i--) {
+  for (int i = vm.frames.count - 1; i >= 0; i--) {
     CallFrame* frame = &(vm.frames[i]);
     size_t instruction = frame->ip - function->chunk.code.beginning() - 1;
     fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
@@ -57,7 +57,7 @@ static void
 defineNative(const char* name, NativeFn function) {
   push(OBJ_VAL(copyString(name, (int)strlen(name))));
   push(OBJ_VAL(newNative(function)));
-  tableSet(&(vm.globals), AS_STRING(vm.stack[0]), vm.stack[1]);
+  tableSet(&(vm.globals), AS_STRING(vm.stack.first()), vm.stack.second());
   pop();
   pop();
 }
@@ -92,19 +92,17 @@ freeVM() {
 
 void
 push(Value value) {
-  *(vm.stackTop) = value;
-  (vm.stackTop)++;
+  vm.stack.push(value);
 }
 
 Value
 pop() {
-  (vm.stackTop)--;
-  return *(vm.stackTop);
+  return vm.stack.pop();
 }
 
 static Value
 peek(int distance) {
-  return vm.stackTop[-1 - distance];
+  return vm.stack.getByNum(distance + 1);
 }
 
 static bool
@@ -114,15 +112,15 @@ call(ObjClosure* closure, int argCount) {
     return false;
   }
 
-  if (vm.frameCount == lims::FRAMES_MAX) {
+  if (vm.frames.reachedMax()) {
     runtimeError("Stack overflow.");
     return false;
   }
 
-  CallFrame* frame = &(vm.frames[vm.frameCount++]);
+  CallFrame* frame = &(vm.frames.increaseCount());
   frame->closure = closure;
   frame->ip = closure->function->chunk.code.beginning();
-  frame->slots = vm.stackTop - argCount - 1;
+  frame->slots = vm.stack.getAddressByNum(argCount + 1);
   return true;
 }
 
@@ -132,12 +130,12 @@ callValue(Value callee, int argCount) {
     switch (OBJ_TYPE(callee)) {
     case ObjType::OBJ_BOUND_METHOD: {
       ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
-      vm.stackTop[-argCount - 1] = bound->receiver;
+      vm.stack.setByNum(argCount + 1, bound->receiver);
       return call(bound->method, argCount);
     }
     case ObjType::OBJ_CLASS: {
       ObjClass* klass = AS_CLASS(callee);
-      vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+      vm.stack.setByNum(argCount + 1, OBJ_VAL(newInstance(klass)));
       Value initializer;
       if (tableGet(&(klass->methods), vm.initString, &initializer)) {
         return call(AS_CLOSURE(initializer), argCount);
@@ -150,8 +148,8 @@ callValue(Value callee, int argCount) {
       return call(AS_CLOSURE(callee), argCount);
     case ObjType::OBJ_NATIVE: {
       NativeFn native = AS_NATIVE(callee);
-      Value result = native(argCount, vm.stackTop - argCount);
-      vm.stackTop -= argCount + 1;
+      Value result = native(argCount, vm.stack.getAddressByNum(argCount));
+      vm.stack.shrinkBySize(argCount + 1);
       push(result);
       return true;
     }
@@ -186,7 +184,7 @@ invoke(ObjString* name, int argCount) {
 
   Value value;
   if (tableGet(&(instance->fields), name, &value)) {
-    vm.stackTop[-argCount - 1] = value;
+    vm.stack.setByNum(argCount + 1, value);
     return callValue(value, argCount);
   }
 
@@ -274,7 +272,7 @@ concatenate() {
 
 static InterpretResult
 run() {
-  CallFrame* frame = &(vm.frames[vm.frameCount - 1]);
+  CallFrame* frame = &(vm.frames.last());
 #define READ_BYTE() (*(frame->ip++))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
@@ -293,7 +291,7 @@ run() {
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
     printf("          ");
-    for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+    for (Value* slot = vm.stack.bottom(); slot < vm.stack.top(); slot++) {
       printf("[ ");
       printValue(*slot);
       printf(" ]");
@@ -493,7 +491,7 @@ run() {
       if (!callValue(peek(argCount), argCount)) {
         return InterpretResult::INTERPRET_RUNTIME_ERROR;
       }
-      frame = &(vm.frames[vm.frameCount - 1]);
+      frame = &(vm.frames.last());
       break;
     }
     case OpCode::OP_INVOKE: {
@@ -502,7 +500,7 @@ run() {
       if (!invoke(method, argCount)) {
         return InterpretResult::INTERPRET_RUNTIME_ERROR;
       }
-      frame = &(vm.frames[vm.frameCount - 1]);
+      frame = &(vm.frames.last());
       break;
     }
     case OpCode::OP_SUPER_INVOKE: {
@@ -512,7 +510,7 @@ run() {
       if (!invokeFromClass(superclass, method, argCount)) {
         return InterpretResult::INTERPRET_RUNTIME_ERROR;
       }
-      frame = &(vm.frames[vm.frameCount - 1]);
+      frame = &(vm.frames.last());
       break;
     }
     case OpCode::OP_CLOSURE: {
@@ -532,22 +530,22 @@ run() {
       break;
     }
     case OpCode::OP_CLOSE_UPVALUE: {
-      closeUpvalues(vm.stackTop - 1);
+      closeUpvalues(vm.stack.getAddressByNum(1));
       pop();
       break;
     }
     case OpCode::OP_RETURN: {
       Value result = pop();
       closeUpvalues(frame->slots);
-      vm.frameCount -= 1;
-      if (vm.frameCount == 0) {
+      vm.frames.decreaseCount();
+      if (vm.frames.isEmpty()) {
         pop();
         return InterpretResult::INTERPRET_OK;
       }
 
-      vm.stackTop = frame->slots;
+      vm.stack.setTop(frame->slots);
       push(result);
-      frame = &(vm.frames[vm.frameCount - 1]);
+      frame = &(vm.frames.last());
       break;
     }
     case OpCode::OP_CLASS: {
