@@ -1,7 +1,7 @@
 #ifndef CLOX_VALUE_H
 #define CLOX_VALUE_H
 
-#include "collection/Vec.h"
+#include "collections/Vec.h"
 #include "common.h"
 
 struct Obj;

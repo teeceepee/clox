@@ -26,7 +26,7 @@ add_executable(clox
     object.cpp
     table.h
     table.cpp
-    collection/Vec.h
+    collections/Vec.h
     lims.h
 )
 
@@ -38,7 +38,7 @@ add_executable(testRunner
     unittests/testRunner.cpp
 
     unittests/chunkTest.cpp
-    unittests/collection/VecTest.cpp
+    unittests/collections/VecTest.cpp
     unittests/commonTest.cpp
     unittests/limsTest.cpp
     unittests/valueTest.cpp
@@ -62,7 +62,7 @@ add_executable(testRunner
     object.cpp
     table.h
     table.cpp
-    collection/Vec.h
+    collections/Vec.h
     lims.h
 )
 
