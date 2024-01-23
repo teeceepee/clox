@@ -65,9 +65,20 @@ runFile(const char* path) {
   }
 }
 
+void foo(int a, int& i) {
+  i = 123;
+}
+
 int
 main(int argc, const char* argv[]) {
   initVM();
+
+  int num = 100;
+  foo(100, num);
+
+  printf("num: %d\n", num);
+
+  exit(0);
 
   if (argc == 1) {
     repl();

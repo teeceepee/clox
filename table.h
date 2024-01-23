@@ -1,9 +1,15 @@
 #ifndef CLOX_TABLE_H
 #define CLOX_TABLE_H
 
-#include "collections/HashMap.h"
+// #include "collections/HashMap.h"
 #include "common.h"
+// #include "object.h"
 #include "value.h"
+
+// inline uint32_t
+// tableKeyHashFn(ObjString* key) {
+//   return key->hash;
+// }
 
 struct Entry {
   ObjString* key;
@@ -11,7 +17,7 @@ struct Entry {
 };
 
 struct Table {
-  collections::HashMap<ObjString*, Value> h;
+  // collections::HashMap<ObjString*, Value> h;
   int count;
   int capacity;
   Entry* entries;

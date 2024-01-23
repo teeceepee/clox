@@ -43,6 +43,7 @@ add_executable(testRunner
     unittests/chunkTest.cpp
     unittests/collections/ArrStackTest.cpp
     unittests/collections/ArrTest.cpp
+    unittests/collections/HashMap.cpp
     unittests/collections/VecTest.cpp
     unittests/commonTest.cpp
     unittests/limsTest.cpp
