@@ -30,6 +30,7 @@ add_executable(clox
     lims.h
     collections/Arr.h
     collections/ArrStack.h
+    collections/HashMap.h
 )
 
 # GTest
@@ -70,6 +71,7 @@ add_executable(testRunner
     lims.h
     collections/Arr.h
     collections/ArrStack.h
+    collections/HashMap.h
 )
 
 target_link_libraries(testRunner ${GTEST_LIBRARIES} pthread)

@@ -1,6 +1,7 @@
 #ifndef CLOX_TABLE_H
 #define CLOX_TABLE_H
 
+#include "collections/HashMap.h"
 #include "common.h"
 #include "value.h"
 
@@ -10,6 +11,7 @@ struct Entry {
 };
 
 struct Table {
+  collections::HashMap<ObjString*, Value> h;
   int count;
   int capacity;
   Entry* entries;
